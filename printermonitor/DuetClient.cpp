@@ -140,50 +140,50 @@ void DuetClient::getPrinterJobResults() {
   printerData.progressPrintTimeLeft = (const char*)root["timesLeft"]["filament"];
   //printerData.filamentLength = (const char*)root["job"]["filament"]["tool0"]["length"];
   printerData.state = (const char*)root["status"];
-  printerData.toolTemp = (const char*)root2["tools"]["current"][2];
-  printerData.toolTargetTemp = (const char*)root2["tools"]["active"];
-  printerData.bedTemp = (const char*)root2["temps"]["bed"]["current"];
-  printerData.bedTargetTemp = (const char*)root2["temps"]["bed"]["active"];
+  printerData.toolTemp = (const char*)root["temps"]["current"][1];
+  printerData.toolTargetTemp = (const char*)root["tools"]["active"];
+  printerData.bedTemp = (const char*)root["temps"]["bed"]["current"];
+  printerData.bedTargetTemp = (const char*)root["temps"]["bed"]["active"];
 
-  switch(printerData.state)
+  switch(printerData.state[0])
   {
-    case: 'C'
+    case 'C':
       printerData.isPrinting = false;
       printerData.state = "Config";
     break;
-    case: 'I'
+    case 'I':
       printerData.isPrinting = false;
       printerData.state = "Idle";
     break;
-    case: 'B'
+    case 'B':
       printerData.isPrinting = false;
       printerData.state = "Busy";
     break;
-    case: 'P'
+    case 'P':
       printerData.isPrinting = true;
       printerData.state = "Printing";
     break;
-    case: 'D'
+    case 'D':
       printerData.isPrinting = true;
       printerData.state = "Decelerating";
     break;
-    case: 'S'
+    case 'S':
       printerData.isPrinting = false;
       printerData.state = "Stopped";
     break;
-    case: 'R'
+    case 'R':
       printerData.isPrinting = false;
       printerData.state = "Resuming";
     break;
-    case: 'H'
+    case 'H':
       printerData.isPrinting = false;
       printerData.state = "Printing";
     break;
-    case: 'F'
+    case 'F':
       printerData.isPrinting = false;
       printerData.state = "Firmware";
     break;
-    case: 'T'
+    case 'T':
       printerData.isPrinting = false;
       printerData.state = "ToolChange";
     break;

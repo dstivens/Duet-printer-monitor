@@ -46,6 +46,7 @@ SOFTWARE.
 #include <ESP8266HTTPUpdateServer.h>
 #include "TimeClient.h"
 #include "RepetierClient.h"
+#include "DuetClient.h"
 #include "OctoPrintClient.h"
 #include "OpenWeatherMapClient.h"
 #include "WeatherStationFonts.h"
