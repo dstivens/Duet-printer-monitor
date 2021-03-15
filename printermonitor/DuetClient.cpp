@@ -270,7 +270,7 @@ boolean DuetClient::isPrinting() {
     case 'H':
     case 'F':
     case 'T':
-    case default:
+    default:
       printerData.isPrinting = false;
     break;
   }
