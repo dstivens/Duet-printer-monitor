@@ -124,80 +124,29 @@ void DuetClient::getPrinterJobResults() {
   JsonObject& root = jsonBuffer.parseObject(printClient);
   if (!root.success()) {
     Serial.println("Duet Data Parsing failed: " + String(myServer) + ":" + String(myPort));
+    resetPrintData();
     printerData.error = "Duet Data Parsing failed: " + String(myServer) + ":" + String(myPort);
-    printerData.state = "";
     return;
   }
   
-  //printerData.averagePrintTime = (const char*)root["job"]["averagePrintTime"];
-  //printerData.estimatedPrintTime = (const char*)root["job"]["estimatedPrintTime"];
-  //printerData.fileName = (const char*)root["job"]["file"]["name"];
-  //printerData.fileSize = (const char*)root["job"]["file"]["size"];
-  //printerData.lastPrintTime = (const char*)root["job"]["lastPrintTime"];
   printerData.progressCompletion = (const char*)root["fractionPrinted"];
-  //printerData.progressFilepos = (const char*)root["progress"]["filepos"];
+  printerData.progressFilepos = (const char*)root["filePosition"];
   printerData.progressPrintTime = (const char*)root["printDuration"];
   printerData.progressPrintTimeLeft = (const char*)root["timesLeft"]["filament"];
-  //printerData.filamentLength = (const char*)root["job"]["filament"]["tool0"]["length"];
   printerData.state = (const char*)root["status"];
-  printerData.toolTemp = (const char*)root2["tools"]["current"][2];
-  printerData.toolTargetTemp = (const char*)root2["tools"]["active"];
-  printerData.bedTemp = (const char*)root2["temps"]["bed"]["current"];
-  printerData.bedTargetTemp = (const char*)root2["temps"]["bed"]["active"];
-
-  switch(printerData.state)
-  {
-    case: 'C'
-      printerData.isPrinting = false;
-      printerData.state = "Config";
-    break;
-    case: 'I'
-      printerData.isPrinting = false;
-      printerData.state = "Idle";
-    break;
-    case: 'B'
-      printerData.isPrinting = false;
-      printerData.state = "Busy";
-    break;
-    case: 'P'
-      printerData.isPrinting = true;
-      printerData.state = "Printing";
-    break;
-    case: 'D'
-      printerData.isPrinting = true;
-      printerData.state = "Decelerating";
-    break;
-    case: 'S'
-      printerData.isPrinting = false;
-      printerData.state = "Stopped";
-    break;
-    case: 'R'
-      printerData.isPrinting = false;
-      printerData.state = "Resuming";
-    break;
-    case: 'H'
-      printerData.isPrinting = false;
-      printerData.state = "Printing";
-    break;
-    case: 'F'
-      printerData.isPrinting = false;
-      printerData.state = "Firmware";
-    break;
-    case: 'T'
-      printerData.isPrinting = false;
-      printerData.state = "ToolChange";
-    break;
-  }
-
+  printerData.toolTemp = (const char*)root["temps"]["current"][1];
+  printerData.toolTargetTemp = (const char*)root["tools"]["active"];
+  printerData.bedTemp = (const char*)root["temps"]["bed"]["current"];
+  printerData.bedTargetTemp = (const char*)root["temps"]["bed"]["active"];
 
   if (isOperational()) {
     Serial.println("Status: " + printerData.state);
   } else {
     Serial.println("Printer Not Operational");
-  }
-/*
-  //**** get the Printer Temps and Stat
-  apiGetData = "GET /api/printer?exclude=sd,history HTTP/1.1";
+  } 
+
+  //**** get the printing file data
+  apiGetData = "GET /rr_fileinfo";
   printClient = getSubmitRequest(apiGetData);
   if (printerData.error != "") {
     return;
@@ -208,29 +157,15 @@ void DuetClient::getPrinterJobResults() {
   // Parse JSON object
   JsonObject& root2 = jsonBuffer2.parseObject(printClient);
   if (!root2.success()) {
-    printerData.isPrinting = false;
-    printerData.toolTemp = "";
-    printerData.toolTargetTemp = "";
-    printerData.bedTemp = "";
-    printerData.bedTargetTemp = (const char*)root2["temperature"]["bed"]["target"];
+    Serial.println("Duet Data Parsing failed: " + String(myServer) + ":" + String(myPort));
+    resetPrintData();
+    printerData.error = "Duet Data Parsing failed: " + String(myServer) + ":" + String(myPort);
     return;
   }
-
-  String printing = (const char*)root2["state"]["flags"]["printing"];
-  if (printing == "true") {
-    printerData.isPrinting = true;
-  } else {
-    printerData.isPrinting = false;
-  }
-  printerData.toolTemp = (const char*)root2["temperature"]["tool0"]["actual"];
-  printerData.toolTargetTemp = (const char*)root2["temperature"]["tool0"]["target"];
-  printerData.bedTemp = (const char*)root2["temperature"]["bed"]["actual"];
-  printerData.bedTargetTemp = (const char*)root2["temperature"]["bed"]["target"];
-
-  if (isPrinting()) {
-    Serial.println("Status: " + printerData.state + " " + printerData.fileName + "(" + printerData.progressCompletion + "%)");
-  }
-  */
+  
+  printerData.fileName = (const char*)root2["fileName"];
+  printerData.fileSize = (const char*)root2["size"];
+  printerData.filamentLength = (const char*)root2["filament"][0];
 }
 
 void DuetClient::getPrinterPsuState() {
@@ -299,10 +234,45 @@ String DuetClient::getProgressPrintTimeLeft() {
 }
 
 String DuetClient::getState() {
-  return printerData.state;
+  switch(printerData.state[0])
+  {
+    case 'C':
+    case 'I':
+    case 'B':
+    case 'P':
+    case 'D':
+    case 'S':
+    case 'R':
+    case 'H':
+    case 'F':
+    case 'T':
+        return "Operational";
+    break;
+    default:
+        return "Offline";
+    break;
+  }
 }
 
 boolean DuetClient::isPrinting() {
+  switch(printerData.state[0])
+  {
+    case 'P':
+    case 'D':
+      printerData.isPrinting = true;
+    break;
+    case 'C':
+    case 'I':
+    case 'B':
+    case 'S':
+    case 'R':
+    case 'H':
+    case 'F':
+    case 'T':
+    default:
+      printerData.isPrinting = false;
+    break;
+  }
   return printerData.isPrinting;
 }
 
@@ -312,7 +282,22 @@ boolean DuetClient::isPSUoff() {
 
 boolean DuetClient::isOperational() {
   boolean operational = false;
-  if (printerData.state == "Operational" || isPrinting()) {
+  switch(printerData.state[0])
+  {
+    case 'C':
+    case 'I':
+    case 'B':
+    case 'P':
+    case 'D':
+    case 'S':
+    case 'R':
+    case 'H':
+    case 'F':
+    case 'T':
+        operational = true;
+    break;
+  }
+  if (operational || isPrinting()) {
     operational = true;
   }
   return operational;

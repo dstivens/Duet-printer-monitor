@@ -1,4 +1,13 @@
-# Printer Monitor (OctoPrint 3D Printer Monitor)
+# Printer Monitor (Duet 3D Printer Monitor)
+
+## Duet port of Printer Monitor
+
+* Setup to work with Duet by default
+* Does not require API key
+* Authentication is untested
+* PSU not implemented
+
+See below for Original docs
 
 ## New Easy Monitor Board Kit:
 Now available is the Pre Loaded Monitor Board Kit that comes ready to plug and play on your network.  
