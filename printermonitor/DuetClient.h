@@ -22,7 +22,6 @@ SOFTWARE.
 */
 
 // Additional Contributions:
-/* 15 Jan 2019 : Owen Carter : Add psucontrol query via POST api call */
 
 #pragma once
 #include <ESP8266WiFi.h>
