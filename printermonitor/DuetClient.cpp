@@ -234,7 +234,6 @@ String DuetClient::getProgressPrintTimeLeft() {
 }
 
 String DuetClient::getState() {
-  //return printerData.state;
   switch(printerData.state[0])
   {
     case 'C':
